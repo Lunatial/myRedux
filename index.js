@@ -13,8 +13,20 @@ function counterReducer(state = initialState, action) {
     }
 }
 
+function logger({ getState, dispatch }) {
+    return (action) => {
+        console.log("will dispatch", action);
+
+        const returnValue = dispatch(action);
+
+        console.log("state after dispatch", getState());
+
+        return returnValue;
+    };
+}
+
 // const store = Redux.createStore(counterReducer);
-const store = myRedux.createStore(counterReducer);
+const store = myRedux.createStore(counterReducer, myRedux.applyMiddleware(logger));
 
 const valueEl = document.getElementById("value");
 

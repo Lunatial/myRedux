@@ -1,13 +1,16 @@
-function createStore(reducer) {
+function createStore(reducer, enhancer) {
+    if (enhancer) {
+        return enhancer(createStore)(reducer);
+    }
+
     let state = reducer(undefined, { type: "@@INIT" });
     const listeners = [];
     return {
         dispatch: (action) => {
-            if (!action?.type) {
-                throw Error("Az actionnal nincs typeja")
+            if (!action.type) {
+                throw Error("Action doesen't have type")
             }
             state = reducer(state, action);
-            console.log(listeners);
             listeners.forEach((listener) => {
                 listener();
             });
@@ -19,6 +22,29 @@ function createStore(reducer) {
     };
 }
 
+function applyMiddleware(middleware) {
+    return (createStore) => (reducer) => {
+        const store = createStore(reducer);
+        return {
+            ...store,
+            dispatch: middleware({
+                getState: store.getState,
+                dispatch: store.dispatch,
+            }),
+        };
+    };
+}
+
+function compose(...functions) {
+    if (functions.length === 0) {
+        return (arg) => arg;
+    }
+
+    return functions.reduce((a, b) => (arg) => a(b(arg)));
+}
+
 const myRedux = {
+    applyMiddleware,
     createStore,
+    compose,
 };
